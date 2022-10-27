@@ -1,0 +1,90 @@
+...
+
+0000000000402290 <__do_global_dtors_aux>:
+  402290:	f3 0f 1e fa          	endbr64 
+  402294:	80 3d 75 4f 00 00 00 	cmp    BYTE PTR [rip+0x4f75],0x0        # 407210 <completed.0>
+  40229b:	75 13                	jne    4022b0 <__do_global_dtors_aux+0x20>
+  40229d:	55                   	push   rbp
+  40229e:	48 89 e5             	mov    rbp,rsp
+  4022a1:	e8 7a ff ff ff       	call   402220 <deregister_tm_clones>
+  4022a6:	c6 05 63 4f 00 00 01 	mov    BYTE PTR [rip+0x4f63],0x1        # 407210 <completed.0>
+  4022ad:	5d                   	pop    rbp
+  4022ae:	c3                   	ret    
+  4022af:	90                   	nop
+  4022b0:	c3                   	ret    
+# Some empty space in the binary! Just what we needed! We will replace
+# the bytes between 0x4022b1 (inclusive) and 0x4022c0 (exclusive) with
+# instructions that
+# a) we had to relocate from the place that we placed the patch (see below)
+# b) call a function that will slow down the execution of the code (slow_down)
+# c) send execution back to the instruction *after* the patch that brought us
+#    here so that the program can continue as normal.
+# mov    rbx,QWORD PTR [rbp-0x8]
+# leave  
+# call 4022c6 (slow_down)
+# leave
+# jmp 4023b6 (from whence we came)
+  4022b1:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  4022b8:	00 00 00 00 
+  4022bc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+00000000004022c0 <frame_dummy>:
+  4022c0:	f3 0f 1e fa          	endbr64 
+  4022c4:	eb 8a                	jmp    402250 <register_tm_clones>
+
+00000000004022c6 <_Z9slow_downv>:
+  4022c6:	55                   	push   rbp
+  4022c7:	48 89 e5             	mov    rbp,rsp
+  4022ca:	c7 45 fc 00 00 00 00 	mov    DWORD PTR [rbp-0x4],0x0
+  4022d1:	eb 09                	jmp    4022dc <_Z9slow_downv+0x16>
+  4022d3:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+  4022d6:	83 c0 01             	add    eax,0x1
+  4022d9:	89 45 fc             	mov    DWORD PTR [rbp-0x4],eax
+  4022dc:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+  4022df:	3d 0f 27 00 00       	cmp    eax,0x270f
+  4022e4:	0f 96 c0             	setbe  al
+  4022e7:	84 c0                	test   al,al
+  4022e9:	75 e8                	jne    4022d3 <_Z9slow_downv+0xd>
+  4022eb:	90                   	nop
+  4022ec:	5d                   	pop    rbp
+  4022ed:	c3                   	ret    
+
+...
+
+  402363:	48 8b 45 e0          	mov    rax,QWORD PTR [rbp-0x20]
+  402367:	48 89 c7             	mov    rdi,rax
+  40236a:	ff d2                	call   rdx
+  40236c:	48 89 c6             	mov    rsi,rax
+  40236f:	bf 00 71 40 00       	mov    edi,0x407100
+  402374:	e8 97 fd ff ff       	call   402110 <_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@plt>
+  402379:	be 20 40 40 00       	mov    esi,0x404020
+  40237e:	48 89 c7             	mov    rdi,rax
+  402381:	e8 8a fd ff ff       	call   402110 <_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@plt>
+  402386:	e8 f5 fd ff ff       	call   402180 <__cxa_end_catch@plt>
+  40238b:	eb 9e                	jmp    40232b <_Z6workerv+0x3d>
+  40238d:	48 89 c3             	mov    rbx,rax
+  402390:	e8 eb fd ff ff       	call   402180 <__cxa_end_catch@plt>
+  402395:	eb 03                	jmp    40239a <_Z6workerv+0xac>
+  402397:	48 89 c3             	mov    rbx,rax
+  40239a:	48 8d 45 b0          	lea    rax,[rbp-0x50]
+  40239e:	48 89 c7             	mov    rdi,rax
+  4023a1:	e8 b2 02 00 00       	call   402658 <_ZNSt10filesystem7__cxx114pathD1Ev>
+  4023a6:	48 89 d8             	mov    rax,rbx
+  4023a9:	48 89 c7             	mov    rdi,rax
+  4023ac:	e8 ef fd ff ff       	call   4021a0 <_Unwind_Resume@plt>
+# We will replace the following mov and leave instruction with an 
+# unconditional jmp to some empty space in the code where we can 
+# a) move these instructions
+# b) add our own instructions
+# The location of that space is 0x4022b1. Documentation continues there.
+  4023b1:	48 8b 5d f8          	mov    rbx,QWORD PTR [rbp-0x8]
+  4023b5:	c9                   	leave  
+  4023b6:	c3                   	ret    
+
+00000000004023b7 <main>:
+  4023b7:	55                   	push   rbp
+  4023b8:	48 89 e5             	mov    rbp,rsp
+  4023bb:	53                   	push   rbx
+  4023bc:	48 83 ec 38          	sub    rsp,0x38
+
+...
