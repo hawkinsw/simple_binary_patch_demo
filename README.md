@@ -1,4 +1,16 @@
-#
+# A Simple Demonstration About Patching a Binary To Change Its Timing
+
+## Overview
+
+TBD
+
+## HOWTO
+
+Run the commands in `bed.cmd` *after* completing the installation process (see below).
+
+```
+$ source bed.cmd
+```
 
 ## Files
 
@@ -8,3 +20,21 @@
 4. `temp.txt`: The file that the binary program `stat`s (We needed to write code that did *something*, after all).
 5. `artifacts/binary`: The binary that we are going to patch.
 6. `artifacts/binary-patched`: The patched binary (recreatable with `source bed.cmd`).
+
+## Installing
+
+First, run `git submodule init`:
+
+```
+$ git submodule init
+```
+
+Then, compile that submodule:
+
+```
+$ cd bed
+$ cargo build
+$ ..
+```
+
+You should be able to run the patching commands in `bed.cmd` (see above). 
